@@ -141,12 +141,26 @@
   #fileInput{display:none;}
 
   /* Stats */
+  .stats-section{margin-top:16px;}
+  .stats-toggle{
+    display:flex;align-items:center;gap:6px;
+    background:none;border:none;padding:6px 2px;
+    color:var(--ink-soft);font-size:.72rem;font-weight:700;
+    text-transform:uppercase;letter-spacing:.09em;
+    width:100%;justify-content:flex-start;
+  }
+  .stats-toggle svg{width:13px;height:13px;transition:transform .2s ease;}
+  .stats-toggle[aria-expanded="false"] svg{transform:rotate(-90deg);}
+  .stats-toggle:hover{color:var(--ink);}
   .stats{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(128px,1fr));
     gap:10px;
-    margin:18px 0 6px;
+    margin:6px 0 6px;
+    overflow:hidden;
+    transition:grid-template-rows .25s ease;
   }
+  .stats.collapsed{display:none;}
   .stat{
     background:var(--bg-elevated);
     border:1px solid var(--line);
@@ -327,7 +341,13 @@
       <input type="file" id="fileInput" accept=".csv,text/csv">
     </div>
 
-    <div class="stats" id="statsBar"></div>
+    <div class="stats-section">
+      <button class="stats-toggle" id="statsToggle" aria-expanded="true">
+        <span>Dashboard</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="stats" id="statsBar"></div>
+    </div>
   </div>
 </header>
 
@@ -433,6 +453,21 @@
     var cur = document.documentElement.getAttribute("data-theme");
     setTheme(cur === "dark" ? "light" : "dark");
   });
+
+  var STATS_COLLAPSED_KEY = "hotelLedger:statsCollapsed";
+  function initStatsToggle(){
+    var collapsed = localStorage.getItem(STATS_COLLAPSED_KEY) === "1";
+    applyStatsCollapsed(collapsed);
+    document.getElementById("statsToggle").addEventListener("click", function(){
+      var isCollapsed = document.getElementById("statsBar").classList.contains("collapsed");
+      applyStatsCollapsed(!isCollapsed);
+      localStorage.setItem(STATS_COLLAPSED_KEY, !isCollapsed ? "1" : "0");
+    });
+  }
+  function applyStatsCollapsed(collapsed){
+    document.getElementById("statsBar").classList.toggle("collapsed", collapsed);
+    document.getElementById("statsToggle").setAttribute("aria-expanded", collapsed ? "false" : "true");
+  }
 
   // ---------- helpers ----------
   function uid(){ return "h_" + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
@@ -1036,6 +1071,7 @@
 
   // ---------- init ----------
   initTheme();
+  initStatsToggle();
   loadData();
   render();
 })();
