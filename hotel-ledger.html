@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Hotel Ledger</title>
+<style>
+  :root{
+    --bg:#EDEFEA;
+    --bg-elevated:#FFFFFF;
+    --surface:#E3E6DC;
+    --ink:#1B2420;
+    --ink-soft:#4B564F;
+    --ink-faint:#7C877F;
+    --accent:#B8863E;
+    --accent-ink:#5A3E12;
+    --accent-soft:#E9D8B2;
+    --teal:#2F5D50;
+    --teal-soft:#D8E4DF;
+    --line:#C9CDBF;
+    --danger:#A4432E;
+    --danger-soft:#F1DAD3;
+    --shadow: rgba(27,36,32,0.10);
+    --radius: 10px;
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Consolas, monospace;
+  }
+  html[data-theme="dark"]{
+    --bg:#121815;
+    --bg-elevated:#1B241F;
+    --surface:#1F2A24;
+    --ink:#E8E6DE;
+    --ink-soft:#A9B3AC;
+    --ink-faint:#748078;
+    --accent:#D3A661;
+    --accent-ink:#F5E3C2;
+    --accent-soft:#3A2E1B;
+    --teal:#5FA491;
+    --teal-soft:#22322C;
+    --line:#313D36;
+    --danger:#E08469;
+    --danger-soft:#3A211C;
+    --shadow: rgba(0,0,0,0.45);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    transition:background .25s ease, color .25s ease;
+    padding-bottom:40px;
+  }
+  ::selection{background:var(--accent-soft);}
+  a{color:var(--teal);}
+  button{font-family:var(--sans);cursor:pointer;}
+  input,select{font-family:var(--sans);}
+  .wrap{max-width:960px;margin:0 auto;padding:0 16px;}
+
+  /* Header */
+  header.top{
+    border-bottom:1px solid var(--line);
+    padding:22px 0 18px;
+    background:var(--bg);
+    position:sticky;top:0;z-index:20;
+    backdrop-filter: blur(6px);
+  }
+  .top-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+  .brand h1{
+    font-family:var(--serif);
+    font-size:1.7rem;
+    margin:0;
+    letter-spacing:.2px;
+    font-weight:600;
+  }
+  .brand .eyebrow{
+    font-family:var(--mono);
+    font-size:.68rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin:0 0 4px;
+  }
+  .brand p.sub{margin:4px 0 0;color:var(--ink-soft);font-size:.88rem;}
+  .theme-btn{
+    border:1px solid var(--line);
+    background:var(--bg-elevated);
+    color:var(--ink);
+    width:40px;height:40px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    flex:0 0 auto;
+    box-shadow:0 1px 2px var(--shadow);
+  }
+  .theme-btn svg{width:18px;height:18px;}
+
+  /* Toolbar */
+  .toolbar{
+    display:flex;flex-wrap:wrap;gap:8px;
+    margin-top:16px;
+  }
+  .toolbar input[type="search"]{
+    flex:1 1 180px;
+    padding:10px 12px;
+    border-radius:var(--radius);
+    border:1px solid var(--line);
+    background:var(--bg-elevated);
+    color:var(--ink);
+    font-size:.9rem;
+  }
+  .toolbar input[type="search"]:focus, button:focus-visible, select:focus-visible, input:focus-visible{
+    outline:2px solid var(--teal);outline-offset:1px;
+  }
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:10px 14px;
+    border-radius:var(--radius);
+    border:1px solid var(--line);
+    background:var(--bg-elevated);
+    color:var(--ink);
+    font-size:.85rem;
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .btn svg{width:15px;height:15px;}
+  .btn:hover{border-color:var(--ink-faint);}
+  .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff;}
+  .btn.primary:hover{filter:brightness(1.06);}
+  .btn.ghost-danger{color:var(--danger);}
+  .btn.ghost-danger:hover{border-color:var(--danger);}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  select.btn{
+    -webkit-appearance:none;appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234B564F' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 10px center;
+    background-size:14px;
+    padding-right:30px;
+  }
+  #fileInput{display:none;}
+
+  /* Stats */
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(128px,1fr));
+    gap:10px;
+    margin:18px 0 6px;
+  }
+  .stat{
+    background:var(--bg-elevated);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:12px 14px;
+  }
+  .stat .num{font-family:var(--mono);font-size:1.15rem;font-weight:600;color:var(--teal);}
+  .stat .label{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-faint);margin-top:2px;}
+
+  /* List */
+  .list{margin-top:18px;border-top:1px solid var(--line);}
+  .row{
+    display:flex;align-items:center;gap:14px;
+    padding:14px 4px;
+    border-bottom:1px solid var(--line);
+    cursor:pointer;
+    position:relative;
+  }
+  .row:hover{background:var(--surface);}
+  .row .idx{
+    font-family:var(--mono);color:var(--ink-faint);font-size:.78rem;width:26px;flex:0 0 auto;
+  }
+  .row .main{flex:1 1 auto;min-width:0;}
+  .row .name{font-family:var(--serif);font-size:1.02rem;font-weight:600;}
+  .row .meta{font-size:.78rem;color:var(--ink-soft);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;}
+  .row .cost-col{flex:0 0 auto;text-align:right;width:130px;}
+  .row .cost-val{font-family:var(--mono);font-weight:600;font-size:.92rem;}
+  .row .bar-track{height:5px;background:var(--surface);border-radius:3px;margin-top:6px;overflow:hidden;}
+  .row .bar-fill{height:100%;background:var(--accent);border-radius:3px;}
+  .row .row-actions{display:flex;gap:2px;flex:0 0 auto;}
+  .icon-btn{
+    width:32px;height:32px;border-radius:8px;border:1px solid transparent;background:transparent;
+    color:var(--ink-faint);display:flex;align-items:center;justify-content:center;
+  }
+  .icon-btn:hover{background:var(--surface);color:var(--ink);}
+  .icon-btn.call{color:var(--teal);text-decoration:none;}
+  .icon-btn.call:hover{background:var(--teal-soft);color:var(--teal);}
+  .icon-btn.danger:hover{color:var(--danger);}
+
+  .mobile-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .chip-btn{
+    display:inline-flex;align-items:center;gap:4px;
+    padding:5px 10px;border-radius:999px;border:1px solid var(--line);
+    background:var(--surface);color:var(--ink-soft);font-size:.72rem;font-weight:600;
+    text-decoration:none;
+  }
+  .chip-btn svg{width:12px;height:12px;}
+  .chip-btn:hover{border-color:var(--teal);color:var(--teal);}
+  .chip-btn.call{color:var(--teal);border-color:var(--teal);}
+  .icon-btn svg{width:15px;height:15px;}
+
+  /* Empty state */
+  .empty{
+    text-align:center;padding:60px 20px;color:var(--ink-soft);
+    border:1px dashed var(--line);border-radius:var(--radius);margin-top:20px;
+  }
+  .empty h2{font-family:var(--serif);color:var(--ink);margin-bottom:6px;}
+  .empty p{font-size:.88rem;max-width:380px;margin:0 auto 16px;}
+
+  /* Modal */
+  .overlay{
+    position:fixed;inset:0;background:rgba(10,14,12,.5);
+    display:flex;align-items:flex-end;justify-content:center;
+    z-index:100;padding:0;
+  }
+  .overlay.hidden{display:none;}
+  .modal{
+    background:var(--bg-elevated);
+    width:100%;max-width:560px;
+    border-radius:16px 16px 0 0;
+    max-height:92vh;overflow-y:auto;
+    box-shadow:0 -4px 24px var(--shadow);
+    animation:slideup .18s ease;
+  }
+  @media (min-width:640px){
+    .overlay{align-items:center;}
+    .modal{border-radius:16px;margin:20px;}
+  }
+  @keyframes slideup{from{transform:translateY(24px);opacity:.4;}to{transform:translateY(0);opacity:1;}}
+  .modal-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 20px;border-bottom:1px solid var(--line);
+    position:sticky;top:0;background:var(--bg-elevated);
+  }
+  .modal-head h3{margin:0;font-family:var(--serif);font-size:1.15rem;}
+  .modal-body{padding:18px 20px 22px;}
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--ink-faint);margin-bottom:5px;
+  }
+  .field .val{font-size:.98rem;}
+  .field .val a{word-break:break-all;}
+  .field input{
+    width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--line);
+    background:var(--bg);color:var(--ink);font-size:.95rem;
+  }
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap;}
+  .close-x{background:none;border:none;color:var(--ink-faint);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+  .close-x:hover{background:var(--surface);color:var(--ink);}
+
+  .choice-card{
+    border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;
+    transition:border-color .15s;
+  }
+  .choice-card:hover{border-color:var(--teal);}
+  .choice-card h4{margin:0 0 4px;font-family:var(--serif);font-size:1rem;}
+  .choice-card p{margin:0;font-size:.82rem;color:var(--ink-soft);}
+
+  .diff-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;}
+  .diff-box{border:1px solid var(--line);border-radius:8px;padding:10px;font-size:.85rem;}
+  .diff-box.new{border-color:var(--teal);}
+  .diff-box h5{margin:0 0 6px;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);}
+  .diff-line{margin-bottom:4px;word-break:break-word;}
+  .diff-line.changed{color:var(--accent-ink);background:var(--accent-soft);border-radius:4px;padding:1px 4px;}
+  .conflict-progress{font-family:var(--mono);font-size:.75rem;color:var(--ink-faint);margin-bottom:8px;}
+
+  /* Toast */
+  #toastHost{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;width:100%;padding:0 16px;}
+  .toast{
+    background:var(--ink);color:var(--bg);
+    padding:10px 16px;border-radius:999px;font-size:.85rem;
+    box-shadow:0 4px 14px var(--shadow);
+    animation:fadein .15s ease;
+    max-width:90vw;text-align:center;
+  }
+  html[data-theme="dark"] .toast{background:var(--accent-soft);color:var(--accent-ink);}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  @media (max-width:640px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .row .cost-col{width:88px;}
+    .row .meta{gap:4px;flex-direction:column;}
+    .diff-grid{grid-template-columns:1fr;}
+    .brand h1{font-size:1.4rem;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div class="brand">
+        <p class="eyebrow">Venue costing tracker</p>
+        <h1>Hotel Ledger</h1>
+        <p class="sub" id="subLine">No entries yet — upload a CSV or add a hotel to begin.</p>
+      </div>
+      <button class="theme-btn" id="themeToggle" title="Toggle dark / light" aria-label="Toggle theme"></button>
+    </div>
+
+    <div class="toolbar">
+      <input type="search" id="searchBox" placeholder="Search by name, city or mobile…">
+      <select id="sortSelect" class="btn" style="font-weight:500;">
+        <option value="name-asc">Name (A–Z)</option>
+        <option value="name-desc">Name (Z–A)</option>
+        <option value="city-asc">City (A–Z)</option>
+        <option value="city-desc">City (Z–A)</option>
+        <option value="cost-asc">Cost (low–high)</option>
+        <option value="cost-desc">Cost (high–low)</option>
+      </select>
+      <button class="btn primary" id="addBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Add
+      </button>
+      <button class="btn" id="uploadBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>
+        Upload CSV
+      </button>
+      <button class="btn" id="downloadBtn" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v12M6 12l6 6 6-6M4 20h16"/></svg>
+        Download CSV
+      </button>
+      <button class="btn ghost-danger" id="clearBtn" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
+        Clear all
+      </button>
+      <input type="file" id="fileInput" accept=".csv,text/csv">
+    </div>
+
+    <div class="stats" id="statsBar"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="emptyState" class="empty" style="display:none;">
+    <h2>Nothing on the ledger yet</h2>
+    <p>Upload the hotel list CSV (Hotel Name, Location, City, Mobile No, Cost for 150) or add your first entry by hand.</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn primary" id="emptyUpload">Upload CSV</button>
+      <button class="btn" id="emptyAdd">Add hotel</button>
+    </div>
+  </div>
+  <div class="list" id="listHost"></div>
+</main>
+
+<div id="toastHost"></div>
+
+<!-- Detail / Edit modal -->
+<div class="overlay hidden" id="detailOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="detailTitle">Hotel</h3>
+      <button class="close-x" id="detailClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- Import choice modal -->
+<div class="overlay hidden" id="importOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Import CSV</h3>
+      <button class="close-x" id="importClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="importBody"></div>
+  </div>
+</div>
+
+<!-- Conflict modal -->
+<div class="overlay hidden" id="conflictOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Row differs from existing</h3>
+      <button class="close-x" id="conflictClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="conflictBody"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "hotelLedger:data";
+  var THEME_KEY = "hotelLedger:theme";
+  var COLUMNS = ["Hotel Name","Location","City","Mobile No","Cost for 150"];
+  var FIELD_MAP = {
+    "Hotel Name":"hotelName",
+    "Location":"location",
+    "City":"city",
+    "Mobile No":"mobileNo",
+    "Cost for 150":"costFor150"
+  };
+
+  var hotels = [];
+  var searchTerm = "";
+  var sortKey = localStorage.getItem("hotelLedger:sort") || "name-asc";
+  var editingId = null; // id currently open in modal, or "__new__"
+
+  // ---------- storage ----------
+  function loadData(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      hotels = raw ? JSON.parse(raw) : [];
+    }catch(e){ hotels = []; }
+  }
+  function saveData(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(hotels));
+  }
+
+  // ---------- theme ----------
+  function initTheme(){
+    var saved = localStorage.getItem(THEME_KEY);
+    var theme = saved || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    setTheme(theme);
+  }
+  function setTheme(theme){
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem(THEME_KEY, theme);
+    var btn = document.getElementById("themeToggle");
+    btn.innerHTML = theme === "dark"
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z"/></svg>';
+  }
+  document.getElementById("themeToggle").addEventListener("click", function(){
+    var cur = document.documentElement.getAttribute("data-theme");
+    setTheme(cur === "dark" ? "light" : "dark");
+  });
+
+  // ---------- helpers ----------
+  function uid(){ return "h_" + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+  function clean(s){
+    return (s===undefined||s===null) ? "" : String(s)
+      .replace(/[\u00a0\ufffd]/g," ")
+      .replace(/\s+/g," ")
+      .trim();
+  }
+  function normKey(h){
+    var name = clean(h.hotelName).toLowerCase();
+    var mob = clean(h.mobileNo).replace(/\D/g,"");
+    return name + "|" + mob;
+  }
+  function toNumber(v){
+    var n = parseFloat(String(v).replace(/[^0-9.\-]/g,""));
+    return isNaN(n) ? 0 : n;
+  }
+  function fmtMoney(n){
+    return "Rs. " + Number(n||0).toLocaleString("en-LK");
+  }
+  function escHtml(s){
+    return clean(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function timestampReadable(){
+    var d = new Date();
+    var pad = function(n){ return String(n).padStart(2,"0"); };
+    return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"_"+pad(d.getHours())+"-"+pad(d.getMinutes())+"-"+pad(d.getSeconds());
+  }
+  function toast(msg){
+    var host = document.getElementById("toastHost");
+    var t = document.createElement("div");
+    t.className = "toast";
+    t.textContent = msg;
+    host.appendChild(t);
+    setTimeout(function(){ t.remove(); }, 2600);
+  }
+  function copyToClipboard(text){
+    text = clean(text);
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){
+        toast("Copied " + text);
+      }).catch(function(){ fallbackCopy(text); });
+    } else {
+      fallbackCopy(text);
+    }
+  }
+  function fallbackCopy(text){
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand("copy"); toast("Copied " + text); }
+    catch(e){ toast("Couldn't copy — long-press the number instead."); }
+    ta.remove();
+  }
+
+  // ---------- CSV parse / serialize ----------
+  function parseCSV(text){
+    text = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n");
+    var rows = [];
+    var row = [];
+    var field = "";
+    var inQuotes = false;
+    for (var i=0;i<text.length;i++){
+      var c = text[i];
+      if (inQuotes){
+        if (c === '"'){
+          if (text[i+1] === '"'){ field += '"'; i++; }
+          else { inQuotes = false; }
+        } else { field += c; }
+      } else {
+        if (c === '"'){ inQuotes = true; }
+        else if (c === ','){ row.push(field); field=""; }
+        else if (c === '\n'){ row.push(field); rows.push(row); row=[]; field=""; }
+        else { field += c; }
+      }
+    }
+    if (field.length || row.length){ row.push(field); rows.push(row); }
+    // drop trailing fully-empty rows
+    rows = rows.filter(function(r){ return r.some(function(v){ return clean(v) !== ""; }); });
+    return rows;
+  }
+  function csvField(v){
+    v = v===undefined||v===null ? "" : String(v);
+    if (/[",\n]/.test(v)) return '"' + v.replace(/"/g,'""') + '"';
+    return v;
+  }
+  function toCSV(list){
+    var lines = [COLUMNS.join(",")];
+    list.forEach(function(h){
+      lines.push(COLUMNS.map(function(col){
+        var key = FIELD_MAP[col];
+        return csvField(h[key]);
+      }).join(","));
+    });
+    return lines.join("\n");
+  }
+  function rowsToHotelObjects(rows){
+    if (!rows.length) return { error: "The file is empty." };
+    var header = rows[0].map(clean);
+    var headerOk = COLUMNS.every(function(col,i){ return (header[i]||"").toLowerCase() === col.toLowerCase(); });
+    if (!headerOk){
+      return { error: "Header row doesn't match the expected format:\n" + COLUMNS.join(", ") };
+    }
+    var out = [];
+    for (var i=1;i<rows.length;i++){
+      var r = rows[i];
+      out.push({
+        id: uid(),
+        hotelName: clean(r[0]),
+        location: clean(r[1]),
+        city: clean(r[2]),
+        mobileNo: clean(r[3]),
+        costFor150: toNumber(r[4])
+      });
+    }
+    return { rows: out };
+  }
+
+  // ---------- rendering ----------
+  function sortList(list){
+    var parts = sortKey.split("-");
+    var key = parts[0], dir = parts[1] === "desc" ? -1 : 1;
+    return list.sort(function(a,b){
+      var av, bv;
+      if (key === "cost"){ av = a.costFor150||0; bv = b.costFor150||0; }
+      else if (key === "city"){ av = clean(a.city).toLowerCase(); bv = clean(b.city).toLowerCase(); }
+      else { av = clean(a.hotelName).toLowerCase(); bv = clean(b.hotelName).toLowerCase(); }
+      if (av < bv) return -1*dir;
+      if (av > bv) return 1*dir;
+      return 0;
+    });
+  }
+  function getFiltered(){
+    var term = searchTerm.trim().toLowerCase();
+    var list = sortList(hotels.slice());
+    if (!term) return list;
+    return list.filter(function(h){
+      return (h.hotelName+" "+h.city+" "+h.mobileNo+" "+h.location).toLowerCase().indexOf(term) !== -1;
+    });
+  }
+
+  function render(){
+    var listHost = document.getElementById("listHost");
+    var emptyState = document.getElementById("emptyState");
+    var filtered = getFiltered();
+
+    document.getElementById("downloadBtn").disabled = hotels.length === 0;
+    document.getElementById("clearBtn").disabled = hotels.length === 0;
+    document.getElementById("subLine").textContent = hotels.length
+      ? hotels.length + " hotel" + (hotels.length===1?"":"s") + " on the ledger"
+      : "No entries yet — upload a CSV or add a hotel to begin.";
+
+    renderStats();
+
+    if (hotels.length === 0){
+      emptyState.style.display = "block";
+      listHost.innerHTML = "";
+      return;
+    }
+    emptyState.style.display = "none";
+
+    if (filtered.length === 0){
+      listHost.innerHTML = '<div class="empty" style="border:none;"><p>No matches for “'+escHtml(searchTerm)+'”.</p></div>';
+      return;
+    }
+
+    var maxCost = Math.max.apply(null, hotels.map(function(h){ return h.costFor150||0; })) || 1;
+
+    listHost.innerHTML = filtered.map(function(h, idx){
+      var pct = Math.max(6, Math.round((h.costFor150||0)/maxCost*100));
+      return (
+        '<div class="row" data-id="'+h.id+'">' +
+          '<div class="idx">'+String(idx+1).padStart(2,"0")+'</div>' +
+          '<div class="main">' +
+            '<div class="name">'+escHtml(h.hotelName || "Untitled hotel")+'</div>' +
+            '<div class="meta"><span>'+escHtml(h.city||"—")+'</span><span>'+escHtml(h.mobileNo||"—")+'</span></div>' +
+          '</div>' +
+          '<div class="cost-col">' +
+            '<div class="cost-val">'+fmtMoney(h.costFor150)+'</div>' +
+            '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div>' +
+          '</div>' +
+          '<div class="row-actions">' +
+            (h.mobileNo ? '<a class="icon-btn call" href="tel:'+escHtml(h.mobileNo.replace(/\s+/g,""))+'" data-call="'+h.id+'" title="Call" aria-label="Call">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.8 19.8 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.68 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.9.32 1.85.55 2.81.68A2 2 0 0122 16.92z"/></svg>' +
+            '</a>' : "") +
+            '<button class="icon-btn" data-edit="'+h.id+'" title="Edit" aria-label="Edit">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>' +
+            '</button>' +
+            '<button class="icon-btn danger" data-del="'+h.id+'" title="Delete" aria-label="Delete">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>' +
+            '</button>' +
+          '</div>' +
+        '</div>'
+      );
+    }).join("");
+  }
+
+  function renderStats(){
+    var host = document.getElementById("statsBar");
+    if (!hotels.length){ host.innerHTML = ""; return; }
+    var costs = hotels.map(function(h){ return h.costFor150||0; });
+    var total = hotels.length;
+    var avg = costs.reduce(function(a,b){return a+b;},0)/total;
+    var avgPerHead = avg/150;
+    var min = Math.min.apply(null,costs);
+    var max = Math.max.apply(null,costs);
+    var cities = new Set(hotels.map(function(h){ return clean(h.city).toLowerCase(); }).filter(Boolean));
+    host.innerHTML =
+      stat(total, "Hotels listed") +
+      stat(fmtMoney(Math.round(avg)), "Average cost") +
+      stat(fmtMoney(Math.round(avgPerHead)), "Average per head") +
+      stat(fmtMoney(min)+" – "+fmtMoney(max), "Cost range") +
+      stat(cities.size, "Cities covered");
+  }
+  function stat(num,label){
+    return '<div class="stat"><div class="num">'+num+'</div><div class="label">'+label+'</div></div>';
+  }
+
+  // ---------- detail / edit modal ----------
+  function fieldsOf(h){
+    return [
+      {key:"hotelName", label:"Hotel name", value:h.hotelName},
+      {key:"location", label:"Location (map link)", value:h.location},
+      {key:"city", label:"City", value:h.city},
+      {key:"mobileNo", label:"Mobile no", value:h.mobileNo},
+      {key:"costFor150", label:"Cost for 150", value:h.costFor150, type:"number"}
+    ];
+  }
+
+  function openDetail(id){
+    editingId = id;
+    var isNew = id === "__new__";
+    var h = isNew ? {hotelName:"",location:"",city:"",mobileNo:"",costFor150:""} : hotels.find(function(x){return x.id===id;});
+    if (!h) return;
+    var overlay = document.getElementById("detailOverlay");
+    document.getElementById("detailTitle").textContent = isNew ? "Add hotel" : (h.hotelName || "Hotel details");
+    renderDetailBody(h, isNew, false);
+    overlay.classList.remove("hidden");
+  }
+
+  function renderDetailBody(h, isNew, editMode){
+    var body = document.getElementById("detailBody");
+    if (!editMode && !isNew){
+      var locLink = h.location && /^https?:\/\//i.test(h.location)
+        ? '<a href="'+escHtml(h.location)+'" target="_blank" rel="noopener">'+escHtml(h.location)+'</a>'
+        : escHtml(h.location || "—");
+      var telHref = h.mobileNo ? 'tel:'+escHtml(h.mobileNo.replace(/\s+/g,"")) : "";
+      var mobileVal = h.mobileNo
+        ? '<span class="mobile-row"><span>'+escHtml(h.mobileNo)+'</span>' +
+            '<button class="chip-btn" id="copyMobileBtn" type="button" title="Copy number">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg> Copy' +
+            '</button>' +
+            '<a class="chip-btn call" href="'+telHref+'" title="Call">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.8 19.8 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.68 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.9.32 1.85.55 2.81.68A2 2 0 0122 16.92z"/></svg> Call' +
+            '</a>' +
+          '</span>'
+        : "—";
+      var perHead = (h.costFor150||0) / 150;
+      body.innerHTML =
+        viewField("Hotel name", escHtml(h.hotelName || "—")) +
+        viewField("City", escHtml(h.city || "—")) +
+        viewField("Mobile no", mobileVal) +
+        viewField("Cost for 150", fmtMoney(h.costFor150)) +
+        viewField("Cost per head", fmtMoney(perHead)) +
+        viewField("Location", locLink) +
+        '<div class="modal-actions">' +
+          '<button class="btn ghost-danger" id="delFromModal">Delete</button>' +
+          '<button class="btn" id="editFromModal">Edit</button>' +
+        '</div>';
+      document.getElementById("delFromModal").onclick = function(){ requestDelete(h.id); };
+      document.getElementById("editFromModal").onclick = function(){ renderDetailBody(h, false, true); };
+      var copyBtn = document.getElementById("copyMobileBtn");
+      if (copyBtn) copyBtn.onclick = function(){ copyToClipboard(h.mobileNo); };
+    } else {
+      body.innerHTML = fieldsOf(h).map(function(f){
+        return '<div class="field"><label>'+f.label+'</label>' +
+          '<input type="'+(f.type||"text")+'" data-field="'+f.key+'" value="'+escHtml(f.value)+'"></div>';
+      }).join("") +
+      '<div class="modal-actions">' +
+        (isNew ? "" : '<button class="btn" id="cancelEdit">Cancel</button>') +
+        '<button class="btn primary" id="saveEdit">Save</button>' +
+      '</div>';
+      document.getElementById("saveEdit").onclick = function(){ saveFromModal(h, isNew); };
+      if (!isNew) document.getElementById("cancelEdit").onclick = function(){ renderDetailBody(h, false, false); };
+    }
+  }
+  function viewField(label, valHtml){
+    return '<div class="field"><label>'+label+'</label><div class="val">'+valHtml+'</div></div>';
+  }
+
+  function saveFromModal(h, isNew){
+    var body = document.getElementById("detailBody");
+    var inputs = body.querySelectorAll("input[data-field]");
+    var data = {};
+    inputs.forEach(function(inp){ data[inp.getAttribute("data-field")] = inp.value; });
+    data.hotelName = clean(data.hotelName);
+    data.location = clean(data.location);
+    data.city = clean(data.city);
+    data.mobileNo = clean(data.mobileNo);
+    data.costFor150 = toNumber(data.costFor150);
+
+    if (!data.hotelName){
+      toast("Hotel name can't be empty.");
+      return;
+    }
+
+    if (isNew){
+      hotels.push(Object.assign({id:uid()}, data));
+      toast("Hotel added.");
+    } else {
+      Object.assign(h, data);
+      toast("Hotel updated.");
+    }
+    saveData();
+    render();
+    closeOverlay("detailOverlay");
+  }
+
+  function requestDelete(id){
+    var h = hotels.find(function(x){return x.id===id;});
+    if (!h) return;
+    if (confirm('Delete "'+h.hotelName+'"? This can\'t be undone.')){
+      hotels = hotels.filter(function(x){return x.id!==id;});
+      saveData();
+      render();
+      closeOverlay("detailOverlay");
+      toast("Hotel deleted.");
+    }
+  }
+
+  function closeOverlay(id){
+    document.getElementById(id).classList.add("hidden");
+  }
+
+  // ---------- list events ----------
+  document.getElementById("listHost").addEventListener("click", function(e){
+    var callBtn = e.target.closest("[data-call]");
+    var editBtn = e.target.closest("[data-edit]");
+    var delBtn = e.target.closest("[data-del]");
+    var row = e.target.closest(".row");
+    if (callBtn){ e.stopPropagation(); return; }
+    if (editBtn){
+      openDetail(editBtn.getAttribute("data-edit"));
+      setTimeout(function(){
+        var h = hotels.find(function(x){return x.id===editBtn.getAttribute("data-edit");});
+        if (h) renderDetailBody(h,false,true);
+      },0);
+      return;
+    }
+    if (delBtn){ requestDelete(delBtn.getAttribute("data-del")); return; }
+    if (row){ openDetail(row.getAttribute("data-id")); }
+  });
+
+  document.getElementById("addBtn").addEventListener("click", function(){ openDetail("__new__"); });
+  document.getElementById("emptyAdd").addEventListener("click", function(){ openDetail("__new__"); });
+  document.getElementById("detailClose").addEventListener("click", function(){ closeOverlay("detailOverlay"); });
+  document.getElementById("detailOverlay").addEventListener("click", function(e){
+    if (e.target.id === "detailOverlay") closeOverlay("detailOverlay");
+  });
+
+  document.getElementById("searchBox").addEventListener("input", function(e){
+    searchTerm = e.target.value;
+    render();
+  });
+
+  var sortSelect = document.getElementById("sortSelect");
+  sortSelect.value = sortKey;
+  sortSelect.addEventListener("change", function(e){
+    sortKey = e.target.value;
+    localStorage.setItem("hotelLedger:sort", sortKey);
+    render();
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", function(){
+    if (!hotels.length) return;
+    if (confirm("Clear all "+hotels.length+" entries from this device? This can't be undone.")){
+      hotels = [];
+      saveData();
+      render();
+      toast("Ledger cleared.");
+    }
+  });
+
+  // ---------- download ----------
+  document.getElementById("downloadBtn").addEventListener("click", function(){
+    if (!hotels.length) return;
+    var csv = toCSV(sortList(hotels.slice()));
+    var blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "Hotel_List_" + timestampReadable() + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 500);
+    toast("CSV downloaded.");
+  });
+
+  // ---------- upload ----------
+  var fileInput = document.getElementById("fileInput");
+  document.getElementById("uploadBtn").addEventListener("click", function(){ fileInput.click(); });
+  document.getElementById("emptyUpload").addEventListener("click", function(){ fileInput.click(); });
+
+  fileInput.addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(evt){
+      var rows = parseCSV(String(evt.target.result));
+      var result = rowsToHotelObjects(rows);
+      if (result.error){
+        toast(result.error);
+      } else if (!result.rows.length){
+        toast("No data rows found in that file.");
+      } else if (!hotels.length){
+        hotels = result.rows;
+        saveData();
+        render();
+        toast("Imported " + result.rows.length + " hotels.");
+      } else {
+        openImportChoice(result.rows);
+      }
+      fileInput.value = "";
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------- import choice ----------
+  function openImportChoice(newRows){
+    var overlay = document.getElementById("importOverlay");
+    var body = document.getElementById("importBody");
+    body.innerHTML =
+      '<p style="color:var(--ink-soft);font-size:.88rem;margin-top:0;">You already have <strong>'+hotels.length+'</strong> hotel(s) saved, and the file has <strong>'+newRows.length+'</strong> row(s). How should this import be handled?</p>' +
+      '<div class="choice-card" id="choiceReplace">' +
+        '<h4>Replace everything</h4>' +
+        '<p>Clear the current ledger and start fresh with only what\'s in this file.</p>' +
+      '</div>' +
+      '<div class="choice-card" id="choiceMerge">' +
+        '<h4>Merge — keep unique, review updates</h4>' +
+        '<p>New hotels are added automatically. Rows that match an existing hotel but have changed data will be reviewed one by one.</p>' +
+      '</div>';
+    document.getElementById("choiceReplace").onclick = function(){
+      hotels = newRows;
+      saveData();
+      render();
+      closeOverlay("importOverlay");
+      toast("Replaced ledger with " + newRows.length + " hotels.");
+    };
+    document.getElementById("choiceMerge").onclick = function(){
+      closeOverlay("importOverlay");
+      runMerge(newRows);
+    };
+    overlay.classList.remove("hidden");
+  }
+  document.getElementById("importClose").addEventListener("click", function(){ closeOverlay("importOverlay"); });
+  document.getElementById("importOverlay").addEventListener("click", function(e){
+    if (e.target.id === "importOverlay") closeOverlay("importOverlay");
+  });
+
+  // ---------- merge + conflict resolution ----------
+  function fieldsDiffer(a,b){
+    return normVal(a.hotelName)!==normVal(b.hotelName) ||
+           normVal(a.location)!==normVal(b.location) ||
+           normVal(a.city)!==normVal(b.city) ||
+           normVal(a.mobileNo)!==normVal(b.mobileNo) ||
+           Number(a.costFor150||0)!==Number(b.costFor150||0);
+  }
+  function normVal(v){ return clean(v).toLowerCase(); }
+
+  function runMerge(newRows){
+    var byKey = {};
+    hotels.forEach(function(h){ byKey[normKey(h)] = h; });
+
+    var added = 0, unchanged = 0;
+    var conflicts = [];
+
+    newRows.forEach(function(nr){
+      var key = normKey(nr);
+      var existing = byKey[key];
+      if (!existing){
+        hotels.push(nr);
+        added++;
+      } else if (fieldsDiffer(existing, nr)){
+        conflicts.push({existing:existing, incoming:nr});
+      } else {
+        unchanged++;
+      }
+    });
+
+    saveData();
+    render();
+
+    if (!conflicts.length){
+      toast("Added " + added + ", unchanged " + unchanged + ". No conflicts to review.");
+      return;
+    }
+    resolveConflicts(conflicts, added, unchanged);
+  }
+
+  function resolveConflicts(conflicts, added, unchanged){
+    var idx = 0;
+    var applyAll = null;
+    var updated = 0, kept = 0;
+
+    function next(){
+      if (idx >= conflicts.length){
+        closeOverlay("conflictOverlay");
+        saveData();
+        render();
+        toast("Import done — added "+added+", updated "+updated+", kept "+kept+", unchanged "+unchanged+".");
+        return;
+      }
+      var c = conflicts[idx];
+      if (applyAll){
+        apply(c, applyAll);
+        idx++;
+        next();
+        return;
+      }
+      showConflict(c, idx, conflicts.length, function(action, all){
+        apply(c, action);
+        if (all) applyAll = action;
+        idx++;
+        next();
+      });
+    }
+
+    function apply(c, action){
+      if (action === "update"){
+        Object.assign(c.existing, {
+          hotelName:c.incoming.hotelName, location:c.incoming.location, city:c.incoming.city,
+          mobileNo:c.incoming.mobileNo, costFor150:c.incoming.costFor150
+        });
+        updated++;
+      } else {
+        kept++;
+      }
+    }
+
+    next();
+  }
+
+  function showConflict(c, idx, total, done){
+    var overlay = document.getElementById("conflictOverlay");
+    var body = document.getElementById("conflictBody");
+    var ex = c.existing, nw = c.incoming;
+
+    function line(label, oldV, newV){
+      var changed = normVal(oldV) !== normVal(newV) || Number(oldV||0)!==Number(newV||0);
+      return {label:label, oldV:oldV, newV:newV, changed:changed};
+    }
+    var rows = [
+      line("Hotel name", ex.hotelName, nw.hotelName),
+      line("Location", ex.location, nw.location),
+      line("City", ex.city, nw.city),
+      line("Mobile no", ex.mobileNo, nw.mobileNo),
+      line("Cost for 150", fmtMoney(ex.costFor150), fmtMoney(nw.costFor150))
+    ];
+
+    body.innerHTML =
+      '<div class="conflict-progress">Reviewing '+(idx+1)+' of '+total+'</div>' +
+      '<div class="diff-grid">' +
+        '<div class="diff-box"><h5>Keep existing</h5>' + rows.map(function(r){
+          return '<div class="diff-line'+(r.changed?" changed":"")+'">'+escHtml(r.label)+': '+escHtml(String(r.oldV))+'</div>';
+        }).join("") + '</div>' +
+        '<div class="diff-box new"><h5>From file</h5>' + rows.map(function(r){
+          return '<div class="diff-line'+(r.changed?" changed":"")+'">'+escHtml(r.label)+': '+escHtml(String(r.newV))+'</div>';
+        }).join("") + '</div>' +
+      '</div>' +
+      '<div class="modal-actions" style="justify-content:space-between;">' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+          '<button class="btn" id="keepAllBtn">Keep existing for all remaining</button>' +
+          '<button class="btn" id="updateAllBtn">Update all remaining</button>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<button class="btn" id="keepOneBtn">Keep existing</button>' +
+          '<button class="btn primary" id="updateOneBtn">Update this one</button>' +
+        '</div>' +
+      '</div>';
+
+    overlay.classList.remove("hidden");
+    document.getElementById("keepOneBtn").onclick = function(){ done("keep", false); };
+    document.getElementById("updateOneBtn").onclick = function(){ done("update", false); };
+    document.getElementById("keepAllBtn").onclick = function(){ done("keep", true); };
+    document.getElementById("updateAllBtn").onclick = function(){ done("update", true); };
+  }
+  document.getElementById("conflictClose").addEventListener("click", function(){
+    closeOverlay("conflictOverlay");
+    saveData();
+    render();
+    toast("Import stopped — remaining rows were left as-is.");
+  });
+
+  // ---------- init ----------
+  initTheme();
+  loadData();
+  render();
+})();
+</script>
+</body>
+</html>
